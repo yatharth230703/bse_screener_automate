@@ -1,7 +1,7 @@
 from google.oauth2.service_account import Credentials
 import gspread
 
-SERVICE_ACCOUNT_FILE = "/Users/yatharthbisht/Desktop/Programming/BSE_SHEET_PROJ/bsenew-updater-b54a018c7ce6.json"
+SERVICE_ACCOUNT_FILE = "keys.json"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
