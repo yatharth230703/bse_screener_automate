@@ -66,9 +66,9 @@ def run(playwright):
         else:
             continue
 
-    print(sales)  ## ---> sales is done 
+    print("sales : " , sales)  ## ---> sales is done 
 
-    print("this is blank text type : " , len(page.text_content("xpath=/html/body/main/section[4]/div[2]/table/tbody/tr[4]/td[13]")))
+    #print("this is blank text type : " , len(page.text_content("xpath=/html/body/main/section[4]/div[2]/table/tbody/tr[4]/td[13]")))
 
     #  other income , profit --> current + past 4 
 
@@ -91,8 +91,23 @@ def run(playwright):
                 netp_minus_otherinc[i] = round(a-b,2) 
         else:
             continue
+    print("netp : " , netp_minus_otherinc)
 
-    print(netp_minus_otherinc)
+
+    opm = [1,2,3,4,5]
+    for i in range(0,5):
+        temp = f"/html/body/main/section[4]/div[3]/table/tbody/tr[4]/td[{sales_xp_last-i}]"
+        check = page.query_selector(f"xpath={temp}")
+        if(check):
+            if(len(page.text_content(f"xpath={temp}"))==0):
+                print("NULL VALUE ")
+                opm[i] = 99999
+        else:
+            opm[i] = float(page.text_content(f"xpath={temp}"))
+    
+    print("opm  : " ,opm)
+
+
 
 
     #  scroll into view in sabki headings 
@@ -101,20 +116,28 @@ def run(playwright):
     page.locator("#balance-sheet > div.flex-row.flex-space-between.flex-gap-16 > div:nth-child(1)").scroll_into_view_if_needed()
     time.sleep(1)
 
+   
+   ## find 4 more values for borrowing
+
+
     borrowing_xp = ""
-    
+    borriwin_prev_xp = ""
     for i in range(0,30):
 
         temp = f"/html/body/main/section[6]/div[2]/table/tbody/tr[3]/td[{i}]"
-        
-        check = page.query_selector(f"xpath={temp}")
+        tempo = f"/html/body/main/section[6]/div[2]/table/tbody/tr[3]/td[{i-1}]"
+        check1 = page.query_selector(f"xpath={temp}")
+        check2 = page.query_selector(f"xpath={tempo}")
+
 
         if(check):
             borrowing_xp = temp 
+            borriwin_prev_xp = tempo 
     
     borrowing = int(page.text_content(f"xpath={borrowing_xp}"))
-
+    borrowing_prev = int(page.text_content(f"xpath={borriwin_prev_xp}"))
     print("borrowing  : " , borrowing)
+    print("prev borrowing : " , borrowing_prev)
 
 
 
