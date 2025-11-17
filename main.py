@@ -135,7 +135,12 @@ def run(playwright):
                         # title
                         page_title = new_page.title()
 ###### scrape results page
-                        results_page_scraper(new_page)
+                        #results_page_scraper(new_page)
+                        results_page_scraper(
+                            new_page,
+                            stock_name=page_title,       # or better extract company name
+                            trade_date_str=today         # the extracted date string
+                        )
 
                         print(f"--- NEW COMPANY PAGE TITLE: {page_title}")
                         #time.sleep(3)

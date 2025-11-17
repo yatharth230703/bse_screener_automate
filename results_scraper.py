@@ -9,7 +9,7 @@ import gspread
 
 # ====== GOOGLE SHEETS CONFIG ======
 SERVICE_ACCOUNT_FILE = "keys.json"        # path to your service account JSON
-SHEET_ID = "YOUR_SHEET_ID_HERE"           # <<< put your sheet ID here
+SHEET_ID = "1GrNsCpFHJ2XtSHw_DgI-_PORGKhBi1tkTSQyALJnKoQ"           # <<< put your sheet ID here
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -438,15 +438,17 @@ def classify_and_append_to_sheet(
     # ---------- FILTERS (ignore stock if any fails) ----------
 
     # 1. If current quarter sales are lower than all past 4 quarters -> ignore
+# 1. Reject if current sales < ANY of last 4 quarters
     if curr_sale is not None and last4_sales:
-        if all(curr_sale < s for s in last4_sales if s is not None):
-            # Completely weaker sales than all last 4
-            return False
+        for s in last4_sales:
+            if s is not None and curr_sale < s:
+                return False  # reject immediately
 
-    # 2. If (NP - OI) metric is lower for current quarter than all past 4 -> ignore
+    # 2. Reject if current core profit < ANY of last 4 quarters
     if curr_profit_core is not None and last4_profit_core:
-        if all(curr_profit_core < p for p in last4_profit_core if p is not None):
-            return False
+        for p in last4_profit_core:
+            if p is not None and curr_profit_core < p:
+                return False  # reject immediately
 
     # 3. If market cap < 150 Cr -> ignore
     if marketcap is not None and marketcap < 150:
@@ -601,10 +603,14 @@ def classify_and_append_to_sheet(
 
 # ---------- MAIN SCRAPER FUNCTION (for use from other scripts) ----------
 
-def results_page_scraper(page):
+def results_page_scraper(page, stock_name=None, trade_date_str=None):
     """
     Accepts a Playwright `page` that is already on a Screener company URL.
-    Navigates to the Quarters tab, scrapes all metrics, and returns a dict.
+    Navigates to the Quarters tab, scrapes all metrics, logs (optionally) to
+    Google Sheets and returns a dict.
+
+    stock_name, trade_date_str are optional but required if you want to
+    append to Google Sheets.
     """
 
     # Ensure we are on the #quarters tab of this company
@@ -614,22 +620,19 @@ def results_page_scraper(page):
         page.goto(quarters_url)
         page.wait_for_load_state("networkidle")
 
-    # Quarterly data
+    # ---------- scrape ----------
     quarterly = extract_quarterly_financials(page)
     print("Sales (last 5):", quarterly["sales"])
     print("Other Income (last 5):", quarterly["other_income"])
     print("OPM % (last 5):", quarterly["opm_percent"])
     print("Net Profit (last 5):", quarterly["net_profit"])
 
-    # Borrowings
     borrowings = extract_recent_borrowings(page)
     print("Borrowings:", borrowings)
 
-    # Cash from operating activity
     cash_from_ops = extract_recent_cash_from_ops(page)
     print("Cash from Ops:", cash_from_ops)
 
-    # Working capital days
     wc_days = extract_recent_working_capital_days(page)
     print("Working Capital Days:", wc_days)
 
@@ -649,47 +652,31 @@ def results_page_scraper(page):
     else:
         print("Median PE not needed, Industry PE present.")
 
-    # result = {
-    #     **quarterly,
-    #     "borrowings": borrowings,
-    #     "cash_from_ops": cash_from_ops,
-    #     "working_capital_days": wc_days,
-    #     "marketcap": marketcap,
-    #     "stock_pe": stock_pe,
-    #     "industry_pe": industry_pe,
-    #     "median_pe": median_pe,
-    # }
+    # ---------- build result dict using the actual variables we have ----------
     result = {
-        "sales": sales,
-        "other_income": other_income,
-        "opm_percent": opm_percent,
-        "net_profit": net_profit,
+        **quarterly,                      # expands sales, other_income, opm_percent, net_profit
         "borrowings": borrowings,
         "cash_from_ops": cash_from_ops,
-        "working_capital_days": working_capital_days,
+        "working_capital_days": wc_days,
         "marketcap": marketcap,
         "stock_pe": stock_pe,
         "industry_pe": industry_pe,
         "median_pe": median_pe,
     }
 
-    # Log to sheet (only if it passes filters)
-    classify_and_append_to_sheet(
-        result=result,
-        stock_name=stock_name,
-        trade_date_str=trade_date_str,
-    )
+    # ---------- optionally write to Google Sheet ----------
+    if stock_name is not None and trade_date_str is not None:
+        classify_and_append_to_sheet(
+            result=result,
+            stock_name=stock_name,
+            trade_date_str=trade_date_str,
+        )
+
     print("\n==== FINAL RESULT OBJECT ====")
     for k, v in result.items():
         print(f"{k}: {v}")
 
     return result
-
-
-# Optional alias so `from results_page_scraper import results_scraper`
-# still works with your existing second script.
-def results_scraper(page):
-    return results_page_scraper(page)
 
 
 # ---------- Standalone debug harness ----------
