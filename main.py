@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 import time
 import os
-from results_page_scraper import results_scraper
+from results_scraper import results_page_scraper
 ## placeholder func ; 
 # def right_page (page) --> ## returns the page on which I am supposed to be scrolling 
 
@@ -9,7 +9,7 @@ from results_page_scraper import results_scraper
 
 # def excel (values [] -> list ) --> ## returns a list to be uploaded on excel spreadsheet 
 from datetime import datetime
-
+from results_scraper import results_page_scraper
 year = datetime.now().year
 print("the year is  :" , year)
 def parse_date(date_str: str) -> list:
@@ -42,7 +42,7 @@ def run(playwright):
 
         #page.goto("https://www.google.com/")
         page.goto("https://www.screener.in/results/latest/")
-        time.sleep(3)
+        time.sleep(15)
         
 
         ### october xpath : /html/body/div/div[2]/main/div[1]/nav/a[2]
@@ -134,7 +134,7 @@ def run(playwright):
 
                         # title
                         page_title = new_page.title()
-
+###### scrape results page
                         results_page_scraper(new_page)
 
                         print(f"--- NEW COMPANY PAGE TITLE: {page_title}")
@@ -188,39 +188,7 @@ def run(playwright):
         else:
             #page.dblclick(prev_day_xpath)
             break
-       
-       ## DEPRICATED PATHWAY , navigate nahi hora 
-        # today_list = parse_date(today)
-        # prev_day_list = parse_date(prev_day)
 
-        # print("today : " , today_list , "prev day : "  , prev_day)
-
-        # ## now that I have today's and yesterday's date as a list 
-        # try:
-        #     print("try entered ")
-        #     for i in range(0,26):
-
-        #         if(itn==0):
-        #             url = f"https://www.screener.in/results/latest/?p={i}&result_update_date__day={today_list[0]}&result_update_date__month={today_list[1]}&result_update_date__year={year}"
-        #             page.evaluate("url => window.location.assign(url)", url)
-        #             page.wait_for_load_state("networkidle")
-
-
-        #             # new_page = browser.new_page()
-        #             # new_page.goto(f"https://www.screener.in/results/latest/?p={i}&result_update_date__day={today_list[0]}&result_update_date__month={today_list[1]}&result_update_date__year={year}")
-        #             time.sleep(13)
-        #             break
-        #         else:
-        #             new_page = browser.new_page()
-        #             new_page.goto(f"https://www.screener.in/results/latest/?p={i}&result_update_date__day={prev_day_list[0]}&result_update_date__month={prev_day_list[1]}&result_update_date__year={year}")
-        #             time.sleep(13)
-        #             break
-        # except Exception as e : 
-        #     print("page don't exist" , e )
-        
-
-
-        #time.sleep(300)
 
         browser.close()
 

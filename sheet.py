@@ -18,13 +18,6 @@ sheet = client.open_by_key("1GrNsCpFHJ2XtSHw_DgI-_PORGKhBi1tkTSQyALJnKoQ").sheet
 # sheet = client.open("sample sheet").sheet1
 
 sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
 
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
-sheet.append_row(["1", "DTU", "CSE", "3rd Year"])
 
 print("✅ Action completed successfully")
