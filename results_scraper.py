@@ -599,6 +599,22 @@ def classify_and_append_to_sheet(
     ]
 
     sheet.append_row(row, value_input_option="USER_ENTERED")
+
+    # ----- DUPLICATE CHECK -----
+    existing_records = sheet.get_all_values()
+
+    for r in existing_records:
+        if len(r) >= 2:
+            existing_date = r[0].strip()
+            existing_stock = r[1].strip()
+
+            if existing_date == trade_date_str and existing_stock.lower() == stock_name.lower():
+                print(f"Duplicate found for {stock_name} on {trade_date_str} — skipping.")
+                return False  # Do NOT append the row
+
+    # ----- APPEND IF NOT DUPLICATE -----
+    sheet.append_row(row, value_input_option="USER_ENTERED")
+    print(f"Added: {stock_name} @ {trade_date_str}")
     return True
 
 # ---------- MAIN SCRAPER FUNCTION (for use from other scripts) ----------
