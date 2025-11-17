@@ -763,7 +763,9 @@ def results_page_scraper(page, stock_name=None, trade_date_str=None):
         "median_pe": median_pe,
         "promoters_last2": prom_last2,
     }
-
+    # ---------- CLEAN STOCK NAME ----------
+    if stock_name:
+        stock_name = stock_name.split(" | ")[0].strip()
     # ---------- optionally write to Google Sheet ----------
     if stock_name is not None and trade_date_str is not None:
         classify_and_append_to_sheet(
@@ -785,9 +787,9 @@ if __name__ == "__main__":
     # Quick manual test on a single company
     with sync_playwright() as p:
         user_data_dir = os.path.join(os.getcwd(), "user_data")
-        browser = p.chromium.launch_persistent_context(user_data_dir, headless=False)
+        browser = p.chromium.launch_persistent_context(user_data_dir, headless=True)
         page = browser.new_page()
-        page.goto("https://www.screener.in/company/GULFPETRO/")
+        page.goto("https://www.screener.in/company/531802/#quarters")
         page.wait_for_load_state("networkidle")
 
         results_page_scraper(page)
