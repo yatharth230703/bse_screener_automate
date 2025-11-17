@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 import time
 import os
-
+from results_page_scraper import results_scraper
 ## placeholder func ; 
 # def right_page (page) --> ## returns the page on which I am supposed to be scrolling 
 
