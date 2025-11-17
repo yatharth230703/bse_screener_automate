@@ -451,7 +451,7 @@ def classify_and_append_to_sheet(
                 return False  # reject immediately
 
     # 3. If market cap < 150 Cr -> ignore
-    if marketcap is not None and marketcap < 150:
+    if marketcap is not None and marketcap < 125:
         return False
 
     # 4. If borrowing (current) > market cap -> ignore
