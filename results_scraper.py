@@ -314,6 +314,78 @@ def extract_marketcap_stockpe_industrype(page):
 
 
 # ---------- Median PE from Charts tab ----------
+def extract_promoters_last2(page):
+    """
+    From the Shareholding Pattern → Quarterly tab,
+    extract the last 2 promoter shareholding percentages.
+
+    Returns list: [prev, curr]
+    Example: [53.44, 48.09]
+    If anything unavailable → returns [None, None]
+    """
+
+    # Ensure section loads
+    try:
+        page.wait_for_selector("section#shareholding", timeout=10000)
+    except:
+        return [None, None]
+
+    section = page.query_selector("section#shareholding")
+    if not section:
+        return [None, None]
+
+    # Ensure we are on quarterly tab
+    quarter_tab = section.query_selector('button.active[data-tab-id="quarterly-shp"]')
+    if not quarter_tab:
+        try:
+            section.query_selector('button[data-tab-id="quarterly-shp"]').click()
+            time.sleep(1.5)
+        except:
+            pass
+
+    # Now get the table
+    table = section.query_selector("#quarterly-shp table.data-table")
+    if not table:
+        return [None, None]
+
+    rows = table.query_selector_all("tbody tr")
+    if not rows:
+        return [None, None]
+
+    promoters_row = None
+
+    # Find promoters row using FIRST <td> text (not the button)
+    for tr in rows:
+        first_cell = tr.query_selector("td.text")
+        if not first_cell:
+            continue
+
+        txt = first_cell.inner_text().strip().lower()
+        if "promoters" in txt:
+            promoters_row = tr
+            break
+
+    if promoters_row is None:
+        return [None, None]
+
+    # Extract promoter % values from <td> cells (skip first label cell)
+    cells = promoters_row.query_selector_all("td")[1:]
+    vals = [c.inner_text().strip() for c in cells]
+
+    # Only numeric-like values
+    numeric = []
+    for v in reversed(vals):
+        m = re.search(r"(\d+\.?\d*)", v)
+        if m:
+            numeric.append(float(m.group()))
+        if len(numeric) == 2:
+            break
+
+    if len(numeric) < 2:
+        return [None, None]
+
+    # reverse to chronological → [prev, curr]
+    return list(reversed(numeric))
 
 def extract_median_pe(page):
     """Navigate to Charts, PE Ratio, then extract the Median PE from the bottom of the graph."""
@@ -407,6 +479,14 @@ def classify_and_append_to_sheet(
     stock_pe = result.get("stock_pe")
     industry_pe = result.get("industry_pe")
     median_pe = result.get("median_pe")
+    promoters_last2 = result.get("promoters_last2") or [None, None]
+
+    prom_prev, prom_curr = promoters_last2
+
+    # Filter rule: If promoters == 0 in either of last 2 quarters → reject stock
+    if prom_prev is not None and prom_curr is not None:
+        if prom_prev == 0 or prom_curr == 0:
+            return False
 
     # ---------- Derive helper series ----------
     # NP - OtherIncome per quarter (same length as net_profit/other_income)
@@ -652,6 +732,8 @@ def results_page_scraper(page, stock_name=None, trade_date_str=None):
     wc_days = extract_recent_working_capital_days(page)
     print("Working Capital Days:", wc_days)
 
+    prom_last2 = extract_promoters_last2(page)
+    print("Promoters last 2:", prom_last2)
     # Top ratios (Market Cap, Stock PE, Industry PE)
     page.evaluate("window.scrollTo(0, 0)")
     time.sleep(1)
@@ -668,6 +750,8 @@ def results_page_scraper(page, stock_name=None, trade_date_str=None):
     else:
         print("Median PE not needed, Industry PE present.")
 
+    
+
     # ---------- build result dict using the actual variables we have ----------
     result = {
         **quarterly,                      # expands sales, other_income, opm_percent, net_profit
@@ -678,6 +762,7 @@ def results_page_scraper(page, stock_name=None, trade_date_str=None):
         "stock_pe": stock_pe,
         "industry_pe": industry_pe,
         "median_pe": median_pe,
+        "promoters_last2": prom_last2,
     }
 
     # ---------- optionally write to Google Sheet ----------
