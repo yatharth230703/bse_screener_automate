@@ -34,7 +34,7 @@ def run(playwright):
         # Launch persistent context instead of a new browser each time
         browser = playwright.chromium.launch_persistent_context(
             user_data_dir,
-            headless=False  # Set True to run in background
+            headless=False # Set True to run in background
         )
 
         # Reuse the same context tab
