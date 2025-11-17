@@ -587,11 +587,11 @@ def classify_and_append_to_sheet(
     )
 
     if sales_good and profit_good and best_margins and borrowings_down:
-        result_type = "Best result"
+        result_type = "Solid"
     elif sales_good or profit_good:
-        result_type = "Good"
+        result_type = "Best"
     else:
-        result_type = "Normal"
+        result_type = "Good"
 
     # ---------- VALUATION (Over / Fair / Under) ----------
 
