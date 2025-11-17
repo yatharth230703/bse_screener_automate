@@ -678,7 +678,6 @@ def classify_and_append_to_sheet(
         remarks,                     # Final remarks
     ]
 
-    sheet.append_row(row, value_input_option="USER_ENTERED")
 
     # ----- DUPLICATE CHECK -----
     existing_records = sheet.get_all_values()
